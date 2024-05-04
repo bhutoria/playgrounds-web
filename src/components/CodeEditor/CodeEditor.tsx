@@ -7,10 +7,16 @@ import {
   openFileState,
   socketState,
 } from "@/store";
-import { Editor } from "@monaco-editor/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import EditorNavbar from "./EditorNavbar";
+
+import dynamic from "next/dynamic";
+
+const EditorComponent = dynamic(
+  () => import("@/components/CodeEditor/MonacoEditor"),
+  { ssr: false }
+);
 
 const CodeEditor = ({ height, width }: { height: number; width: number }) => {
   const openFile = useRecoilValue(openFileState);
@@ -51,39 +57,13 @@ const CodeEditor = ({ height, width }: { height: number; width: number }) => {
     };
   }, [value, openFile, saveFile]);
 
-  const language = useMemo(() => {
-    if (openFile) {
-      return findLanguage(openFile.split(".").pop()!);
-    }
-    return undefined;
-  }, [openFile]);
-
-  const onChange = (v: string | undefined) => {
-    if (v) {
-      setValue(v);
-    }
-  };
-
   return (
     <div className={"h-full w-full flex flex-col"}>
       <div style={{ width }}>
         <EditorNavbar></EditorNavbar>
       </div>
       {openFile ? (
-        <Editor
-          value={value}
-          onChange={onChange}
-          language={language}
-          theme="vs-dark"
-          options={{
-            wordWrap: "on",
-            minimap: { enabled: false },
-            fontSize: 16,
-            automaticLayout: true,
-          }}
-          height={height}
-          width={width}
-        ></Editor>
+        <EditorComponent height={height} width={width}></EditorComponent>
       ) : (
         <div className="w-full h-full bg-gray-900 flex items-center justify-center text-slate-200 pr-10">
           Select a file to open editor.
@@ -92,32 +72,4 @@ const CodeEditor = ({ height, width }: { height: number; width: number }) => {
     </div>
   );
 };
-
-const findLanguage = (ext: string) => {
-  let lang: string;
-  switch (ext) {
-    case "json":
-      lang = "json";
-      break;
-    case "html":
-      lang = "html";
-      break;
-    case "css":
-      lang = "css";
-      break;
-    case "ts":
-      lang = "typescript";
-      break;
-    case "js":
-      lang = "javascript";
-      break;
-    case "md":
-      lang = "markdown";
-      break;
-    default:
-      lang = "";
-  }
-  return lang;
-};
-
 export default CodeEditor;

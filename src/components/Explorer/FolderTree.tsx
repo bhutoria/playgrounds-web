@@ -39,7 +39,7 @@ const FolderTree = ({ path, name }: FolderTreeProps) => {
   const getDirectoryContent = useCallback(
     async (dir: string) => {
       if (!socket) return;
-      if (tree.get(dir)!.children!.length > 0) {
+      if (tree.has(dir) && tree.get(dir)!.children!.length > 0) {
         return;
       }
       const newFiles: File[] = [];
@@ -49,8 +49,8 @@ const FolderTree = ({ path, name }: FolderTreeProps) => {
           newFiles.push(file);
         }
       });
-      if (newFiles.length > 0) {
-        setFiles((f) => [...f, ...newFiles]);
+      if (receivedFiles.length > 0) {
+        setFiles((f) => [...f, ...receivedFiles]);
       }
     },
     [tree, socket, setFiles]
@@ -98,22 +98,23 @@ const FolderTree = ({ path, name }: FolderTreeProps) => {
           {newItem && newItem.path === path && (
             <AddNewInput item={newItem}></AddNewInput>
           )}
-          {children!.map((child) => {
-            const { type, path, name } = tree.get(child)!;
+          {children &&
+            children.map((child) => {
+              const { type, path, name } = tree.get(child)!;
 
-            if (type === "dir") {
-              return (
-                <FolderTree key={path} path={path} name={name}></FolderTree>
-              );
-            } else if (type === "file") {
-              return (
-                <FileComponent
-                  key={path}
-                  file={{ type, path, name }}
-                ></FileComponent>
-              );
-            }
-          })}
+              if (type === "dir") {
+                return (
+                  <FolderTree key={path} path={path} name={name}></FolderTree>
+                );
+              } else if (type === "file") {
+                return (
+                  <FileComponent
+                    key={path}
+                    file={{ type, path, name }}
+                  ></FileComponent>
+                );
+              }
+            })}
         </div>
       )}
     </div>
